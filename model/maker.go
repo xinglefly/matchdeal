@@ -4,11 +4,36 @@ import (
 	"time"
 	"fmt"
 	"math/rand"
+	"sort"
 )
 
 type Maker struct {
+	Id    int //TODO 内存中存储手动++，后期放到数据库自增长
 	Price int
 	Num   int
+}
+
+type MakerWrapper struct {
+	maker []Maker
+	by    func(q, p *Maker) bool
+}
+
+type MakerSort func(q, p *Maker) bool
+
+func (m MakerWrapper) Len() int {
+	return len(m.maker)
+}
+
+func (m MakerWrapper) Swap(i, j int) {
+	m.maker[i], m.maker[j] = m.maker[j], m.maker[i]
+}
+
+func (m MakerWrapper) Less(i, j int) bool {
+	return m.by(&m.maker[i], &m.maker[j])
+}
+
+func SortMaker(maker []Maker, by MakerSort){
+	sort.Sort(MakerWrapper{maker, by})
 }
 
 func createGorutingMaker() chan Maker {
@@ -18,9 +43,11 @@ func createGorutingMaker() chan Maker {
 			for {
 				time.Sleep(time.Duration(1500) * time.Millisecond)
 				m := Maker{
+					Id:    ii,
 					Price: rand.Intn(100),
 					Num:   rand.Intn(6) + 1,
 				}
+				ii++
 				c <- m
 			}
 		}(i)
@@ -60,6 +87,9 @@ func CreateMaker() {
 		select {
 		case n := <-m:
 			queues = append(queues, n)
+			SortMaker(queues, func(q, p *Maker) bool {
+				return p.Price < q.Price
+			})
 			fmt.Println("maker[]:", queues)
 		case activeMaker <- makerValue:
 			queues = queues[1:]
