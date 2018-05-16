@@ -32,11 +32,11 @@ func (m MakerWrapper) Less(i, j int) bool {
 	return m.by(&m.maker[i], &m.maker[j])
 }
 
-func SortMaker(maker []Maker, by MakerSort){
+func SortMaker(maker []Maker, by MakerSort) {
 	sort.Sort(MakerWrapper{maker, by})
 }
 
-func createGorutingMaker() chan Maker {
+func CreateGorutingMaker() chan Maker {
 	c := make(chan Maker)
 	for i := 0; i <= 4; i++ {
 		go func(ii int) {
@@ -59,18 +59,18 @@ func createGorutingMaker() chan Maker {
 func doWorkMaker(id int, c chan Maker) {
 	for n := range c {
 		time.Sleep(2 * time.Second)
-		fmt.Printf("Maker id %d receiver %d\n", id, n)
+		fmt.Printf("Maker id %d receiver price %d num%d\n", n.Id, n.Price, n.Num)
 	}
 }
 
-func receiverMaker(id int) chan<- Maker {
+func ReceiverMaker(id int) chan<- Maker {
 	c := make(chan Maker)
 	go doWorkMaker(id, c)
 	return c
 }
 
 func CreateMaker() {
-	m := createGorutingMaker()
+	/*m := createGorutingMaker()
 	maker := receiverMaker(0)
 	var queues []Maker
 	var tike = time.Tick(time.Second)
@@ -100,6 +100,6 @@ func CreateMaker() {
 			return
 		}
 
-	}
+	}*/
 
 }

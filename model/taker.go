@@ -36,9 +36,8 @@ func SortTaker(taker []Taker, by TakerSort) {
 	sort.Sort(TakerWrapper{taker, by})
 }
 
-var tm = time.After(15 * time.Second)
 
-func createGroutingTaker() chan Taker {
+func CreateGroutingTaker() chan Taker {
 	c := make(chan Taker)
 	for i := 0; i <= 4; i++ {
 		go func(ii int) {
@@ -60,18 +59,18 @@ func createGroutingTaker() chan Taker {
 func doWorkTaker(id int, c chan Taker) {
 	for n := range c {
 		time.Sleep(2 * time.Second)
-		fmt.Printf("Taker id %d receiver id %d price %d num %d\n", id, n.Id, n.Price, n.Num)
+		fmt.Printf("Taker id %d receiver price %d num %d\n", n.Id, n.Price, n.Num)
 	}
 }
 
-func receiverTaker(id int) chan<- Taker {
+func ReceiverTaker(id int) chan<- Taker {
 	c := make(chan Taker)
 	go doWorkTaker(id, c)
 	return c
 }
 
 func CreateTaker() {
-	data := createGroutingTaker()
+	/*data := createGroutingTaker()
 	taker := receiverTaker(0)
 	var takerQueues []Taker
 
@@ -101,5 +100,5 @@ func CreateTaker() {
 			return
 		}
 
-	}
+	}*/
 }
