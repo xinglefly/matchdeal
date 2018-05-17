@@ -38,7 +38,7 @@ func SortTaker(taker []Taker, by TakerSort) {
 
 func CreateGroutingTaker() chan Taker {
 	c := make(chan Taker)
-	for i := 1; i < 5; i++ {
+	for i := 1; i < 30; i++ {
 		go func(ii int) {
 			for {
 				time.Sleep(time.Duration(1500) * time.Millisecond)

@@ -28,10 +28,10 @@ var (
 	orderId = 1
 )
 
-//生成订单
+//生成交易订单
 func CreateOrder(op string, m model.Maker, t model.Taker) {
-	fmt.Println("op-->",op)
-	if m.Price <= t.Price { //TODO true 撮合交易，生成交易订单
+	fmt.Println("op-->", op)
+	if ok := model.MathQ(t.Price, m.Price); ok && m.Price <= t.Price {
 		//币币交易规则限制
 		push := model.Order{
 			Id: orderId,
