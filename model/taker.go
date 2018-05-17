@@ -36,19 +36,18 @@ func SortTaker(taker []Taker, by TakerSort) {
 	sort.Sort(TakerWrapper{taker, by})
 }
 
-
 func CreateGroutingTaker() chan Taker {
 	c := make(chan Taker)
-	for i := 0; i <= 4; i++ {
+	for i := 1; i < 5; i++ {
 		go func(ii int) {
 			for {
 				time.Sleep(time.Duration(1500) * time.Millisecond)
 				t := Taker{
 					Id:    ii,
 					Price: rand.Intn(100),
-					Num:   rand.Intn(3),
+					Num:   rand.Intn(3)+1,
 				}
-				ii++
+				i++
 				c <- t
 			}
 		}(i)

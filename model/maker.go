@@ -38,7 +38,7 @@ func SortMaker(maker []Maker, by MakerSort) {
 
 func CreateGorutingMaker() chan Maker {
 	c := make(chan Maker)
-	for i := 0; i <= 4; i++ {
+	for i := 1; i < 5; i++ {
 		go func(ii int) {
 			for {
 				time.Sleep(time.Duration(1500) * time.Millisecond)
@@ -47,7 +47,7 @@ func CreateGorutingMaker() chan Maker {
 					Price: rand.Intn(100),
 					Num:   rand.Intn(6) + 1,
 				}
-				ii++
+				i++
 				c <- m
 			}
 		}(i)
