@@ -13,6 +13,10 @@ type Taker struct {
 	Num   int
 }
 
+func (t Taker) String() string {
+	return fmt.Sprintf("T[id=%d, p=%d,n=%d]", t.Id, t.Price, t.Num)
+}
+
 type TakerWrapper struct {
 	taker [] Taker
 	by    func(p, q *Taker) bool
@@ -38,14 +42,14 @@ func SortTaker(taker []Taker, by TakerSort) {
 
 func CreateGroutingTaker() chan Taker {
 	c := make(chan Taker)
-	for i := 1; i < 30; i++ {
+	for i := 1; i < 400; i++ {
 		go func(ii int) {
 			for {
 				time.Sleep(time.Duration(1500) * time.Millisecond)
 				t := Taker{
 					Id:    ii,
 					Price: rand.Intn(100),
-					Num:   rand.Intn(3)+1,
+					Num:   rand.Intn(3) + 1,
 				}
 				i++
 				c <- t
@@ -59,6 +63,8 @@ func doWorkTaker(id int, c chan Taker) {
 	for n := range c {
 		time.Sleep(2 * time.Second)
 		fmt.Printf("Taker id %d receiver price %d num %d\n", n.Id, n.Price, n.Num)
+		fmt.Println("pop takerQueue[0]",n)
+		fmt.Println("order[]", OrderQueues)
 	}
 }
 
@@ -68,36 +74,3 @@ func ReceiverTaker(id int) chan<- Taker {
 	return c
 }
 
-func CreateTaker() {
-	/*data := createGroutingTaker()
-	taker := receiverTaker(0)
-	var takerQueues []Taker
-
-	tick := time.Tick(time.Second)
-
-	for {
-		var activeTaker chan<- Taker
-		var takerValue Taker
-		if len(takerQueues) > 0 {
-			activeTaker = taker
-			takerValue = takerQueues[0]
-		}
-
-		select {
-		case n := <-data:
-			takerQueues = append(takerQueues, n)
-			SortTaker(takerQueues, func(p, q *Taker) bool {
-				return q.Price < p.Price
-			})
-			fmt.Println("taker[]", takerQueues)
-		case activeTaker <- takerValue:
-			takerQueues = takerQueues[1:]
-		case <-tick:
-			fmt.Printf("takerQueues:%d \n:", len(takerQueues))
-		case <-tm:
-			fmt.Println("exit taker!")
-			return
-		}
-
-	}*/
-}

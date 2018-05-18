@@ -30,8 +30,9 @@ var (
 
 //生成交易订单
 func CreateOrder(op string, m model.Maker, t model.Taker) {
-	fmt.Println("op-->", op)
+	//fmt.Println("op-->", op)
 	if ok := model.MathQ(t.Price, m.Price); ok && m.Price <= t.Price {
+		PopQueues(op,m,t)
 		//币币交易规则限制
 		push := model.Order{
 			Id: orderId,
@@ -39,9 +40,9 @@ func CreateOrder(op string, m model.Maker, t model.Taker) {
 			T:  t,
 			M:  m,
 		}
+		//fmt.Println(push)
 		model.OrderQueues = append(model.OrderQueues, push)
 		orderId++
-		fmt.Println("order[]", model.OrderQueues)
 	} else {
 		if strings.EqualFold(op, "buy") {
 			insertTakerQueues(t)
@@ -52,11 +53,28 @@ func CreateOrder(op string, m model.Maker, t model.Taker) {
 	}
 }
 
+var activeTaker chan<- model.Taker
+var takerValue model.Taker
+
+var activeMaker chan<- model.Maker
+var makerValue model.Maker
+
+//Pop Queues logic
+func PopQueues(op string, m model.Maker, t model.Taker) {
+	if strings.EqualFold(op, "buy") {
+		activeMaker = maker
+		makerValue = m
+	} else{
+		activeTaker = taker
+		takerValue = t
+	}
+}
+
 //买单 ——> 卖单队列中匹配
 func MatchTaker(t model.Taker) {
 	if len(queuesMaker) > 0 {
 		m := queuesMaker[0]
-		fmt.Println("buy[]", m, t.Price)
+		//fmt.Println("buy[]", m, t.Price)
 		CreateOrder("buy", m, t)
 	} else {
 		insertTakerQueues(t)
@@ -65,7 +83,7 @@ func MatchTaker(t model.Taker) {
 
 //插入到买单队列中
 func insertTakerQueues(t model.Taker) {
-	time.Sleep(1 * time.Second)
+	time.Sleep(15 * time.Millisecond)
 	queuesTaker = append(queuesTaker, t)
 
 	model.SortTaker(queuesTaker, func(p, q *model.Taker) bool {
@@ -84,40 +102,34 @@ func MatchMaker(m model.Maker) {
 }
 
 func insertMakerQueue(m model.Maker) {
-	time.Sleep(1 * time.Second)
+	time.Sleep(15 * time.Millisecond)
 	queuesMaker = append(queuesMaker, m)
 	model.SortMaker(queuesMaker, func(q, p *model.Maker) bool {
 		return p.Price < q.Price
 	})
 }
 
+
+
+
 func main() {
 	for {
-		var activeTaker chan<- model.Taker
-		var takerValue model.Taker
-		//if len(queuesTaker) > 0 {
-		//	activeTaker = taker
-		//	takerValue = queuesTaker[0]
-		//}
-
-		var activeMaker chan<- model.Maker
-		var makerValue model.Maker
-		//if len(queuesMaker) > 0 {
-		//	activeMaker = maker
-		//	makerValue = queuesMaker[0]
-		//}
-
 		select {
 		case n := <-dataTaker:
 			MatchTaker(n)
 		case activeTaker <- takerValue:
 			queuesTaker = queuesTaker[1:]
-
+			model.SortTaker(queuesTaker, func(p, q *model.Taker) bool {
+				return q.Price < p.Price
+			})
 		case n := <-dataMaker:
 			MatchMaker(n)
 
 		case activeMaker <- makerValue:
 			queuesMaker = queuesMaker[1:]
+			model.SortMaker(queuesMaker, func(q, p *model.Maker) bool {
+				return p.Price < q.Price
+			})
 		case <-tick:
 			fmt.Printf("takerQueues:%d \n:", len(queuesTaker))
 			fmt.Printf("makerQueues:%d \n:", len(queuesMaker))

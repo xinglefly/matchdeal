@@ -13,6 +13,10 @@ type Maker struct {
 	Num   int
 }
 
+func (m Maker) String() string {
+	return fmt.Sprintf("M[id=%d, p=%d, n=%d]", m.Id, m.Price, m.Num)
+}
+
 type MakerWrapper struct {
 	maker []Maker
 	by    func(q, p *Maker) bool
@@ -38,7 +42,7 @@ func SortMaker(maker []Maker, by MakerSort) {
 
 func CreateGorutingMaker() chan Maker {
 	c := make(chan Maker)
-	for i := 1; i < 20; i++ {
+	for i := 1; i < 500; i++ {
 		go func(ii int) {
 			for {
 				time.Sleep(time.Duration(1500) * time.Millisecond)
@@ -60,6 +64,8 @@ func doWorkMaker(id int, c chan Maker) {
 	for n := range c {
 		time.Sleep(2 * time.Second)
 		fmt.Printf("Maker id %d receiver price %d num%d\n", n.Id, n.Price, n.Num)
+		//fmt.Println("pop makerqueues[0]",n)
+		fmt.Println("order[]", OrderQueues)
 	}
 }
 

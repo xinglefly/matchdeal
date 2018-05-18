@@ -13,6 +13,12 @@ type Order struct {
 	M  Maker
 }
 
+func (o Order) String() string {
+	return fmt.Sprintf("Order[op=%s,id=%d "+
+		"T[id=%d,p=%d, n=%d],"+
+		"M[id=%d,p=%d, n=%d]", o.Op, o.Id, o.T.Id, o.T.Price, o.T.Num, o.M.Id, o.M.Price, o.M.Num)
+}
+
 var OrderQueues []Order
 
 //TODO 币币交易限制 （成交价-卖价）/卖价 < 30%
