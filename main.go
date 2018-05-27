@@ -14,7 +14,7 @@ type Goruting interface {
 }
 
 var (
-	tm   = time.After(15 * time.Second)
+	tm   = time.After(10 * time.Second)
 	tick = time.Tick(time.Second)
 	//Taker
 	dataTaker   = model.CreateGroutingTaker()
@@ -32,7 +32,7 @@ var (
 func CreateOrder(op string, m model.Maker, t model.Taker) {
 	//fmt.Println("op-->", op)
 	if ok := model.MathQ(t.Price, m.Price); ok && m.Price <= t.Price {
-		PopQueues(op,m,t)
+		PopQueues(op, m, t)
 		//币币交易规则限制
 		push := model.Order{
 			Id: orderId,
@@ -64,7 +64,7 @@ func PopQueues(op string, m model.Maker, t model.Taker) {
 	if strings.EqualFold(op, "buy") {
 		activeMaker = maker
 		makerValue = m
-	} else{
+	} else {
 		activeTaker = taker
 		takerValue = t
 	}
@@ -89,6 +89,12 @@ func insertTakerQueues(t model.Taker) {
 	model.SortTaker(queuesTaker, func(p, q *model.Taker) bool {
 		return q.Price < p.Price
 	})
+	model.SortTaker(queuesTaker, func(p, q *model.Taker) bool {
+		if p.Price == q.Price {
+			return p.Created < q.Created
+		}
+		return false
+	})
 }
 
 //卖单 ——> 买单队列中匹配
@@ -107,10 +113,14 @@ func insertMakerQueue(m model.Maker) {
 	model.SortMaker(queuesMaker, func(q, p *model.Maker) bool {
 		return p.Price < q.Price
 	})
+
+	model.SortMaker(queuesMaker, func(q, p *model.Maker) bool {
+		if p.Price == q.Price {
+			return p.Created < q.Created
+		}
+		return false
+	})
 }
-
-
-
 
 func main() {
 	for {

@@ -5,16 +5,18 @@ import (
 	"fmt"
 	"math/rand"
 	"sort"
+	"matchdeal/common"
 )
 
 type Taker struct {
-	Id    int
-	Price int
-	Num   int
+	Id      int
+	Price   int
+	Num     int
+	Created string
 }
 
 func (t Taker) String() string {
-	return fmt.Sprintf("T[id=%d, p=%d,n=%d]", t.Id, t.Price, t.Num)
+	return fmt.Sprintf("T[id=%d, p=%d,n=%d,t=%s]", t.Id, t.Price, t.Num, t.Created)
 }
 
 type TakerWrapper struct {
@@ -40,16 +42,22 @@ func SortTaker(taker []Taker, by TakerSort) {
 	sort.Sort(TakerWrapper{taker, by})
 }
 
+func SortPrice2Time(){
+	
+}
+
+
 func CreateGroutingTaker() chan Taker {
 	c := make(chan Taker)
-	for i := 1; i < 400; i++ {
+	for i := 1; i < 40; i++ {
 		go func(ii int) {
 			for {
 				time.Sleep(time.Duration(1500) * time.Millisecond)
 				t := Taker{
-					Id:    ii,
-					Price: rand.Intn(100),
-					Num:   rand.Intn(3) + 1,
+					Id:      ii,
+					Price:   rand.Intn(100),
+					Num:     rand.Intn(3) + 1,
+					Created: common.FormatTime(),
 				}
 				i++
 				c <- t
@@ -63,7 +71,7 @@ func doWorkTaker(id int, c chan Taker) {
 	for n := range c {
 		time.Sleep(2 * time.Second)
 		fmt.Printf("Taker id %d receiver price %d num %d\n", n.Id, n.Price, n.Num)
-		fmt.Println("pop takerQueue[0]",n)
+		fmt.Println("pop takerQueue[0]", n)
 		fmt.Println("order[]", OrderQueues)
 	}
 }
@@ -73,4 +81,3 @@ func ReceiverTaker(id int) chan<- Taker {
 	go doWorkTaker(id, c)
 	return c
 }
-

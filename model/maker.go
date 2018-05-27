@@ -5,16 +5,18 @@ import (
 	"fmt"
 	"math/rand"
 	"sort"
+	"matchdeal/common"
 )
 
 type Maker struct {
-	Id    int //TODO 内存中存储手动++，后期放到数据库自增长
-	Price int
-	Num   int
+	Id      int //TODO 内存中存储手动++，后期放到数据库自增长
+	Price   int
+	Num     int
+	Created string
 }
 
 func (m Maker) String() string {
-	return fmt.Sprintf("M[id=%d, p=%d, n=%d]", m.Id, m.Price, m.Num)
+	return fmt.Sprintf("M[id=%d, p=%d, n=%d,t=%s]", m.Id, m.Price, m.Num, m.Created)
 }
 
 type MakerWrapper struct {
@@ -42,14 +44,15 @@ func SortMaker(maker []Maker, by MakerSort) {
 
 func CreateGorutingMaker() chan Maker {
 	c := make(chan Maker)
-	for i := 1; i < 500; i++ {
+	for i := 1; i < 50; i++ {
 		go func(ii int) {
 			for {
 				time.Sleep(time.Duration(1500) * time.Millisecond)
 				m := Maker{
-					Id:    ii,
-					Price: rand.Intn(100),
-					Num:   rand.Intn(6) + 1,
+					Id:      ii,
+					Price:   rand.Intn(100),
+					Num:     rand.Intn(6) + 1,
+					Created: common.FormatTime(),
 				}
 				i++
 				c <- m
