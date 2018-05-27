@@ -17,6 +17,15 @@ type Taker struct {
 
 var QueuesTaker []Taker
 
+func UpdateTaker(t Taker, num int) Taker {
+	return Taker{
+		Id:      t.Id,
+		Price:   t.Price,
+		Num:     num,
+		Created: t.Created,
+	}
+}
+
 func (t Taker) String() string {
 	return fmt.Sprintf("T[id=%d, p=%d,n=%d,t=%s]", t.Id, t.Price, t.Num, t.Created)
 }
@@ -58,7 +67,7 @@ func SortTPrice2Time() {
 
 func CreateGroutingTaker() chan Taker {
 	c := make(chan Taker)
-	for i := 1; i < 40; i++ {
+	for i := 1; i < 10; i++ {
 		go func(ii int) {
 			for {
 				time.Sleep(time.Duration(1500) * time.Millisecond)

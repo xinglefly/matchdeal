@@ -17,6 +17,15 @@ type Maker struct {
 
 var QueuesMaker []Maker
 
+func UpdateMaker(m Maker, num int) Maker {
+	return Maker{
+		Id:      m.Id,
+		Price:   m.Price,
+		Num:     num,
+		Created: m.Created,
+	}
+}
+
 func (m Maker) String() string {
 	return fmt.Sprintf("M[id=%d, p=%d, n=%d,t=%s]", m.Id, m.Price, m.Num, m.Created)
 }
@@ -59,7 +68,7 @@ func SortMPrice2Time() {
 
 func CreateGorutingMaker() chan Maker {
 	c := make(chan Maker)
-	for i := 1; i < 50; i++ {
+	for i := 1; i < 15; i++ {
 		go func(ii int) {
 			for {
 				time.Sleep(time.Duration(1500) * time.Millisecond)

@@ -25,6 +25,6 @@ var OrderQueues []Order
 func MathQ(t, m int) bool {
 	q := (float64(t) - float64(m)) / float64(m)
 	r, _ := strconv.ParseFloat(strconv.FormatFloat(q, 'f', 2, 64), 64)
-	fmt.Println("mathq:", r)
+	//fmt.Println("mathq:", r)
 	return math.Min(r, 0.3) == r
 }
