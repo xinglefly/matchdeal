@@ -44,6 +44,19 @@ func SortMaker(maker []Maker, by MakerSort) {
 	sort.Sort(MakerWrapper{maker, by})
 }
 
+func SortMPrice2Time() {
+	SortMaker(QueuesMaker, func(q, p *Maker) bool {
+		return p.Price < q.Price
+	})
+
+	SortMaker(QueuesMaker, func(q, p *Maker) bool {
+		if p.Price == q.Price {
+			return p.Created < q.Created
+		}
+		return false
+	})
+}
+
 func CreateGorutingMaker() chan Maker {
 	c := make(chan Maker)
 	for i := 1; i < 50; i++ {

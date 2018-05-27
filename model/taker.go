@@ -44,10 +44,17 @@ func SortTaker(taker []Taker, by TakerSort) {
 	sort.Sort(TakerWrapper{taker, by})
 }
 
-func SortPrice2Time(){
-
+func SortTPrice2Time() {
+	SortTaker(QueuesTaker, func(p, q *Taker) bool {
+		return q.Price < p.Price
+	})
+	SortTaker(QueuesTaker, func(p, q *Taker) bool {
+		if p.Price == q.Price {
+			return p.Created < q.Created
+		}
+		return false
+	})
 }
-
 
 func CreateGroutingTaker() chan Taker {
 	c := make(chan Taker)
