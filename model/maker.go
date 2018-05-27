@@ -15,6 +15,8 @@ type Maker struct {
 	Created string
 }
 
+var QueuesMaker []Maker
+
 func (m Maker) String() string {
 	return fmt.Sprintf("M[id=%d, p=%d, n=%d,t=%s]", m.Id, m.Price, m.Num, m.Created)
 }

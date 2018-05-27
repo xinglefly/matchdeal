@@ -17,13 +17,12 @@ var (
 	tm   = time.After(10 * time.Second)
 	tick = time.Tick(time.Second)
 	//Taker
-	dataTaker   = model.CreateGroutingTaker()
-	taker       = model.ReceiverTaker(0)
-	queuesTaker []model.Taker
+	dataTaker = model.CreateGroutingTaker()
+	taker     = model.ReceiverTaker(0)
+
 	//Maker
-	dataMaker   = model.CreateGorutingMaker()
-	maker       = model.ReceiverMaker(0)
-	queuesMaker []model.Maker
+	dataMaker = model.CreateGorutingMaker()
+	maker     = model.ReceiverMaker(0)
 
 	orderId = 1
 )
@@ -72,8 +71,8 @@ func PopQueues(op string, m model.Maker, t model.Taker) {
 
 //买单 ——> 卖单队列中匹配
 func MatchTaker(t model.Taker) {
-	if len(queuesMaker) > 0 {
-		m := queuesMaker[0]
+	if len(model.QueuesMaker) > 0 {
+		m := model.QueuesMaker[0]
 		//fmt.Println("buy[]", m, t.Price)
 		CreateOrder("buy", m, t)
 	} else {
@@ -84,12 +83,12 @@ func MatchTaker(t model.Taker) {
 //插入到买单队列中
 func insertTakerQueues(t model.Taker) {
 	time.Sleep(15 * time.Millisecond)
-	queuesTaker = append(queuesTaker, t)
+	model.QueuesTaker = append(model.QueuesTaker, t)
 
-	model.SortTaker(queuesTaker, func(p, q *model.Taker) bool {
+	model.SortTaker(model.QueuesTaker, func(p, q *model.Taker) bool {
 		return q.Price < p.Price
 	})
-	model.SortTaker(queuesTaker, func(p, q *model.Taker) bool {
+	model.SortTaker(model.QueuesTaker, func(p, q *model.Taker) bool {
 		if p.Price == q.Price {
 			return p.Created < q.Created
 		}
@@ -99,8 +98,8 @@ func insertTakerQueues(t model.Taker) {
 
 //卖单 ——> 买单队列中匹配
 func MatchMaker(m model.Maker) {
-	if len(queuesTaker) > 0 {
-		t := queuesTaker[0]
+	if len(model.QueuesTaker) > 0 {
+		t := model.QueuesTaker[0]
 		CreateOrder("sale", m, t)
 	} else {
 		insertMakerQueue(m)
@@ -109,12 +108,12 @@ func MatchMaker(m model.Maker) {
 
 func insertMakerQueue(m model.Maker) {
 	time.Sleep(15 * time.Millisecond)
-	queuesMaker = append(queuesMaker, m)
-	model.SortMaker(queuesMaker, func(q, p *model.Maker) bool {
+	model.QueuesMaker = append(model.QueuesMaker, m)
+	model.SortMaker(model.QueuesMaker, func(q, p *model.Maker) bool {
 		return p.Price < q.Price
 	})
 
-	model.SortMaker(queuesMaker, func(q, p *model.Maker) bool {
+	model.SortMaker(model.QueuesMaker, func(q, p *model.Maker) bool {
 		if p.Price == q.Price {
 			return p.Created < q.Created
 		}
@@ -128,24 +127,24 @@ func main() {
 		case n := <-dataTaker:
 			MatchTaker(n)
 		case activeTaker <- takerValue:
-			queuesTaker = queuesTaker[1:]
-			model.SortTaker(queuesTaker, func(p, q *model.Taker) bool {
+			model.QueuesTaker = model.QueuesTaker[1:]
+			model.SortTaker(model.QueuesTaker, func(p, q *model.Taker) bool {
 				return q.Price < p.Price
 			})
 		case n := <-dataMaker:
 			MatchMaker(n)
 
 		case activeMaker <- makerValue:
-			queuesMaker = queuesMaker[1:]
-			model.SortMaker(queuesMaker, func(q, p *model.Maker) bool {
+			model.QueuesMaker = model.QueuesMaker[1:]
+			model.SortMaker(model.QueuesMaker, func(q, p *model.Maker) bool {
 				return p.Price < q.Price
 			})
 		case <-tick:
-			fmt.Printf("takerQueues:%d \n:", len(queuesTaker))
-			fmt.Printf("makerQueues:%d \n:", len(queuesMaker))
+			fmt.Printf("takerQueues:%d \n:", len(model.QueuesTaker))
+			fmt.Printf("makerQueues:%d \n:", len(model.QueuesMaker))
 		case <-tm:
-			fmt.Println("taker[]", queuesTaker)
-			fmt.Println("maker[]:", queuesMaker)
+			fmt.Println("taker[]", model.QueuesTaker)
+			fmt.Println("maker[]:", model.QueuesMaker)
 			fmt.Println("exit program!")
 			return
 		}

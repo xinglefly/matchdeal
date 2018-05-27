@@ -15,6 +15,8 @@ type Taker struct {
 	Created string
 }
 
+var QueuesTaker []Taker
+
 func (t Taker) String() string {
 	return fmt.Sprintf("T[id=%d, p=%d,n=%d,t=%s]", t.Id, t.Price, t.Num, t.Created)
 }
@@ -43,7 +45,7 @@ func SortTaker(taker []Taker, by TakerSort) {
 }
 
 func SortPrice2Time(){
-	
+
 }
 
 
