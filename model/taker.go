@@ -67,7 +67,7 @@ func SortTPrice2Time() {
 
 func CreateGroutingTaker() chan Taker {
 	c := make(chan Taker)
-	for i := 1; i < 10; i++ {
+	for i := 1; i < 50; i++ {
 		go func(ii int) {
 			for {
 				time.Sleep(time.Duration(1500) * time.Millisecond)
@@ -87,10 +87,10 @@ func CreateGroutingTaker() chan Taker {
 
 func doWorkTaker(id int, c chan Taker) {
 	for n := range c {
-		time.Sleep(2 * time.Second)
+		time.Sleep(1 * time.Second)
 		fmt.Printf("Taker id %d receiver price %d num %d\n", n.Id, n.Price, n.Num)
-		fmt.Println("pop takerQueue[0]", n)
-		fmt.Println("order[]", OrderQueues)
+		//fmt.Println("pop takerQueue[0]", n)
+		//fmt.Println("order[]", OrderQueues)
 	}
 }
 

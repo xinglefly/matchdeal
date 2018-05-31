@@ -27,19 +27,21 @@ var (
 )
 
 //生成交易订单
-func CreateOrder(op string, m model.Maker, t model.Taker) {
+/*func CreateOrder(op string, m model.Maker, t model.Taker) {
 	//fmt.Println("op-->", op)
+	//var order model.Order
 	if ok := model.MathQ(t.Price, m.Price); ok && m.Price <= t.Price {
-		//TODO 数量相等时，出栈
-		if m.Num == t.Num { //完全撮合
+		if m.Num == t.Num { //TODO 数量相等时，出栈 完全撮合
 			PopQueues(op, m, t)
+			//PushOrder(op, t, m)
 			PushOrder(op, t, m)
 		} else if strings.EqualFold(op, "buy") && t.Num < m.Num {
 			//TODO 买单数量 < 卖单数量，t 不入栈，makerQueue数量减少（先出栈再入栈 | ）
 			PopQueues(op, m, t)
-			//insertMakerQueue(model.UpdateMaker(m, m.Num - t.Num))
-			fmt.Println("Update Maker-->", m, model.UpdateMaker(m, m.Num - t.Num))
-			PushOrder(op, t, model.UpdateMaker(m, m.Num - t.Num))
+			insertMakerQueue(model.UpdateMaker(m, m.Num-t.Num))
+			fmt.Println("Update Maker-->", m, model.UpdateMaker(m, m.Num-t.Num))
+			//PushOrder(op, t, model.UpdateMaker(m, m.Num - t.Num))
+			PushOrder(op, t, model.UpdateMaker(m, m.Num-t.Num))
 
 		} else if strings.EqualFold(op, "buy") && t.Num > m.Num {
 			//TODO 买单数量 > 卖单数量，m 出栈后 再 递归一次
@@ -48,14 +50,14 @@ func CreateOrder(op string, m model.Maker, t model.Taker) {
 			//TODO 卖单 < 买单数量， m 不入栈， TakerQueue数量减少
 			PopQueues(op, m, t)
 			//insertTakerQueues(model.UpdateTaker(t, t.Num - m.Num))
-			fmt.Println("Update Taker-->", t, model.UpdateTaker(t, t.Num - m.Num))
+			fmt.Println("Update Taker-->", t, model.UpdateTaker(t, t.Num-m.Num))
 
-			PushOrder(op, model.UpdateTaker(t, t.Num - m.Num), m)
+			//PushOrder(op, model.UpdateTaker(t, t.Num-m.Num), m)
+			PushOrder(op, model.UpdateTaker(t, t.Num-m.Num), m)
 
 		} else if strings.EqualFold(op, "sale") && t.Num > m.Num {
 			//TODO  卖单 > 买单， 递归一次
 		}
-
 	} else {
 		if strings.EqualFold(op, "buy") {
 			insertTakerQueues(t)
@@ -64,7 +66,8 @@ func CreateOrder(op string, m model.Maker, t model.Taker) {
 		}
 
 	}
-}
+}*/
+
 func PushOrder(op string, t model.Taker, m model.Maker) {
 	//币币交易规则限制
 	push := model.Order{
@@ -89,9 +92,11 @@ func PopQueues(op string, m model.Maker, t model.Taker) {
 	if strings.EqualFold(op, "buy") {
 		activeMaker = maker
 		makerValue = m
+		model.QueuesMaker = model.QueuesMaker[1:]
 	} else {
 		activeTaker = taker
 		takerValue = t
+		model.QueuesTaker = model.QueuesTaker[1:]
 	}
 }
 
@@ -100,7 +105,33 @@ func MatchTaker(t model.Taker) {
 	if len(model.QueuesMaker) > 0 {
 		m := model.QueuesMaker[0]
 		//fmt.Println("buy[]", m, t.Price)
-		CreateOrder("buy", m, t)
+		//CreateOrder("buy", m, t)
+		MatchOrderTaker("buy", m, t)
+	} else {
+		insertTakerQueues(t)
+	}
+}
+
+
+func MatchOrderTaker(op string, m model.Maker, t model.Taker) {
+	if ok := model.MathQ(t.Price, m.Price); ok && m.Price <= t.Price {
+		switch {
+		case m.Num == t.Num: //TODO 数量相等时，出栈 完全撮合
+			PopQueues(op, m, t)
+			PushOrder(op, t, m)
+		case t.Num < m.Num: //TODO 买单数量 < 卖单数量，t 不入栈，makerQueue数量减少（先出栈再入栈 | ）
+			fmt.Println("Update Maker-->", m, model.UpdateMaker(m, m.Num-t.Num))
+			PopQueues(op, m, t)
+			insertMakerQueue(model.UpdateMaker(m, m.Num-t.Num))
+			PushOrder(op, t, model.UpdateMaker(m, t.Num))
+		case t.Num > m.Num:
+			//TODO 买单数量 > 卖单数量，m 出栈后 再 递归一次
+			fmt.Println("递归 买单:",t,model.UpdateTaker(t, t.Num-m.Num))
+			PopQueues(op, m, t)
+			PushOrder(op, model.UpdateTaker(t, m.Num), m)
+
+			MatchTaker(model.UpdateTaker(t, t.Num-m.Num))
+		}
 	} else {
 		insertTakerQueues(t)
 	}
@@ -118,14 +149,41 @@ func insertTakerQueues(t model.Taker) {
 func MatchMaker(m model.Maker) {
 	if len(model.QueuesTaker) > 0 {
 		t := model.QueuesTaker[0]
-		CreateOrder("sale", m, t)
+		//CreateOrder("sale", m, t)
+		MatchOrderMaker("sale", m, t)
+	} else {
+		insertMakerQueue(m)
+	}
+}
+
+func MatchOrderMaker(op string, m model.Maker, t model.Taker) {
+	if ok := model.MathQ(t.Price, m.Price); ok && m.Price <= t.Price {
+		switch {
+		case m.Num == t.Num: //TODO 数量相等时，出栈 完全撮合
+			PopQueues(op, m, t)
+			PushOrder(op, t, m)
+		case m.Num < t.Num:
+			//TODO 卖单 < 买单数量， m 不入栈， TakerQueue数量减少
+			fmt.Println("Update Taker-->", t, model.UpdateTaker(t, t.Num-m.Num))
+			PopQueues(op, m, t)
+			insertTakerQueues(model.UpdateTaker(t, t.Num-m.Num))
+
+			PushOrder(op, model.UpdateTaker(t, m.Num), m)
+		case m.Num > t.Num:
+			//TODO  卖单 > 买单， 递归一次
+			fmt.Println("递归 卖单:",m,model.UpdateMaker(m, m.Num - t.Num))
+			PopQueues(op, m, t)
+			PushOrder(op, t, model.UpdateMaker(m,t.Num))
+
+			MatchMaker(model.UpdateMaker(m,m.Num-t.Num))
+		}
 	} else {
 		insertMakerQueue(m)
 	}
 }
 
 func insertMakerQueue(m model.Maker) {
-	time.Sleep(15 * time.Millisecond)
+	//time.Sleep(15 * time.Millisecond)
 	model.QueuesMaker = append(model.QueuesMaker, m)
 	model.SortMPrice2Time()
 }
@@ -136,13 +194,13 @@ func main() {
 		case n := <-dataTaker:
 			MatchTaker(n)
 		case activeTaker <- takerValue:
-			model.QueuesTaker = model.QueuesTaker[1:]
+			//model.QueuesTaker = model.QueuesTaker[1:]
 			model.SortTPrice2Time()
 		case n := <-dataMaker:
 			MatchMaker(n)
 
 		case activeMaker <- makerValue:
-			model.QueuesMaker = model.QueuesMaker[1:]
+			//model.QueuesMaker = model.QueuesMaker[1:]
 			model.SortMPrice2Time()
 		case <-tick:
 			fmt.Printf("takerQueues:%d \n:", len(model.QueuesTaker))
@@ -150,6 +208,7 @@ func main() {
 		case <-tm:
 			model.SortTPrice2Time()
 			model.SortMPrice2Time()
+			fmt.Println("order[]", model.OrderQueues)
 			fmt.Println("taker[]", model.QueuesTaker)
 			fmt.Println("maker[]:", model.QueuesMaker)
 			fmt.Println("exit program!")

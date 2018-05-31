@@ -68,7 +68,7 @@ func SortMPrice2Time() {
 
 func CreateGorutingMaker() chan Maker {
 	c := make(chan Maker)
-	for i := 1; i < 15; i++ {
+	for i := 1; i < 50; i++ {
 		go func(ii int) {
 			for {
 				time.Sleep(time.Duration(1500) * time.Millisecond)
@@ -92,7 +92,7 @@ func doWorkMaker(id int, c chan Maker) {
 		time.Sleep(2 * time.Second)
 		fmt.Printf("Maker id %d receiver price %d num%d\n", n.Id, n.Price, n.Num)
 		//fmt.Println("pop makerqueues[0]",n)
-		fmt.Println("order[]", OrderQueues)
+		//fmt.Println("order[]", OrderQueues)
 	}
 }
 
@@ -101,6 +101,7 @@ func ReceiverMaker(id int) chan<- Maker {
 	go doWorkMaker(id, c)
 	return c
 }
+
 
 func CreateMaker() {
 	/*m := createGorutingMaker()
